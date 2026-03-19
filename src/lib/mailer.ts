@@ -81,24 +81,61 @@ export async function sendNewsletter(subscribers: string[], news: SimpleNewsItem
   if (resend) {
     await resend.emails.send({
       from,
-      to: subscribers,
+      to: from, // Send to self
+      bcc: subscribers, // Hide mailing list in BCC
       subject: `AI Digest: ${date}`,
       html: html,
     });
   } else {
-    // Fallback logic
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
       auth: { user: process.env.SMTP_USER || '', pass: process.env.SMTP_PASS || '' }
     });
-    for (const email of subscribers) {
-      await transporter.sendMail({
-        from,
-        to: email,
-        subject: `AI Digest: ${date}`,
-        html: html,
-      });
-    }
+    
+    await transporter.sendMail({
+      from,
+      to: from, // Send to self
+      bcc: subscribers, // Hide mailing list in BCC
+      subject: `AI Digest: ${date}`,
+    });
+  }
+}
+
+export async function sendSubscribersList(adminEmail: string, subscribers: string[]) {
+  const resendKey = process.env.RESEND_API_KEY;
+  const resend = resendKey ? new Resend(resendKey) : null;
+  const from = 'AI Digest Admin <postcards@contact.sumapetproject.co.in>';
+  const date = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  const html = `
+    <div style="background-color: #000000; color: #ffffff; font-family: Arial, sans-serif; padding: 40px;">
+      <h1 style="color: #C87941; margin-bottom: 20px;">Nightly Subscriber Report</h1>
+      <p style="font-size: 16px;">Date: ${date}</p>
+      <p>Total Subscribers: <strong>${subscribers.length}</strong></p>
+      <div style="margin-top: 20px; background: #111; padding: 20px; border: 1px solid #333;">
+        <ul style="list-style: none; padding: 0;">
+          ${subscribers.map(email => `<li style="margin-bottom: 5px; color: #ccc;">${email}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+  `;
+
+  const mailOptions = {
+    from,
+    to: adminEmail,
+    subject: `[AI Digest] Subscriber List - ${date}`,
+    html: html
+  };
+
+  if (resend) {
+    await resend.emails.send(mailOptions);
+  } else {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      auth: { user: process.env.SMTP_USER || '', pass: process.env.SMTP_PASS || '' }
+    });
+    await transporter.sendMail(mailOptions);
   }
 }
