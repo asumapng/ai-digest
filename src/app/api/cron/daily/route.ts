@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { runNewsletterJob } from '@/lib/jobs'; // I'll create this helper
+import { runNewsletterJob } from '../../../../lib/jobs';
 
 export async function GET(req: Request) {
   // Simple auth check via header (standard for Vercel Cron)

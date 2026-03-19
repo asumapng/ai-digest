@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { addSubscriber } from '@/lib/db';
+import { initDb, addSubscriber } from '@/lib/db';
 import { sendWelcomeEmail } from '@/lib/mailer';
 
 export async function POST(req: Request) {
@@ -10,7 +10,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
     }
 
-    addSubscriber(email);
+    await initDb();
+    await addSubscriber(email);
     
     // Send welcome email proactively
     try {
