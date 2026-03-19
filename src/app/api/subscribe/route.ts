@@ -6,6 +6,11 @@ export async function POST(req: Request) {
   try {
     const { email } = await req.json();
     
+    if (process.env.VERCEL && !process.env.DATABASE_URL) {
+      console.error('CRITICAL: DATABASE_URL is missing on Vercel. Subscription will fail.');
+      return NextResponse.json({ error: 'Database not configured. Please see deployment guide.' }, { status: 500 });
+    }
+
     if (!email || !email.includes('@')) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
     }
