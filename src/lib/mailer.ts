@@ -50,7 +50,7 @@ export async function sendNewsletter(subscribers: string[], news: SimpleNewsItem
       </h3>
       <p style="color: #C87941; font-size: 12px; margin: 0; text-transform: uppercase; font-weight: bold;">${item.source}</p>
     </div>
-  `).join('');
+  `).join('<hr style="border: 0; border-top: 1px solid #333; margin: 25px 0;">');
 
   const html = `
     <!DOCTYPE html>
