@@ -1,12 +1,28 @@
-import { createClient } from '@libsql/client';
 import path from 'path';
 
-const url = process.env.DATABASE_URL || `file:${path.join(process.cwd(), 'newsletter.db')}`;
+// Defensive import strategy to avoid native binding issues in CI/Cloud
+const getClient = () => {
+  const url = process.env.DATABASE_URL || `file:${path.join(process.cwd(), 'newsletter.db')}`;
+  const authToken = process.env.DATABASE_AUTH_TOKEN;
 
-const client = createClient({
-  url: url,
-  authToken: process.env.DATABASE_AUTH_TOKEN,
-});
+  // If it's a remote URL, we use the web-safe client (no native bindings)
+  if (url.startsWith('libsql://') || url.startsWith('https://')) {
+    const { createClient } = require('@libsql/client/web');
+    return createClient({ url, authToken });
+  } else {
+    // Local file fallback uses the standard node client
+    try {
+      const { createClient } = require('@libsql/client');
+      return createClient({ url, authToken });
+    } catch (e) {
+      console.warn('Failed to load native libsql client, falling back to web client for local file (may not work on all systems)');
+      const { createClient } = require('@libsql/client/web');
+      return createClient({ url, authToken });
+    }
+  }
+};
+
+const client = getClient();
 
 // Link Normalizer (removes trailing slashes and common tracking params)
 export function normalizeLink(url: string) {
