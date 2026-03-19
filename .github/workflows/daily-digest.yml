@@ -22,6 +22,7 @@ jobs:
       
       - name: Run Digest Script
         env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}  
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
